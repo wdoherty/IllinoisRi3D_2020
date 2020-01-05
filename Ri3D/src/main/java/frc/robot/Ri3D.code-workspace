@@ -1,5 +1,9 @@
 {
-	"folders": [],
+	"folders": [
+		{
+			"path": "C:\\Users\\Billy\\Desktop\\Ri3D\\IllinoisRi3D_2020\\Ri3D"
+		}
+	],
 	"settings": {
 		"java.configuration.updateBuildConfiguration": "automatic"
 	}
