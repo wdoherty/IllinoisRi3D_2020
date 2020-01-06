@@ -35,13 +35,22 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";	  
   private String m_autoSelected;	 
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
+  
+  // Drivetrain Motor Controllers - Victor SPs
   private SpeedController m_left1 = new PWMVictorSPX(0);
   private SpeedController m_left2 = new PWMVictorSPX(1);
   private SpeedController m_right1 = new PWMVictorSPX(2);
   private SpeedController m_right2 = new PWMVictorSPX(3);
   // private SpeedController m_intake = new PWMVictorSPX(4);
+  
+  // Intake and Output Motor Controllers
   private VictorSPX m_intake = new VictorSPX(1);
+  private VictorSPX m_output = new VictorSPX(2);
+
+  // Output Solenoid, raising the roller set
   private DoubleSolenoid tensioner = new DoubleSolenoid(0, 1);
+
+  // Drivetrain Speed Controller Groups
   private SpeedControllerGroup m_left = new SpeedControllerGroup(m_left1, m_left2);
   private SpeedControllerGroup m_right = new SpeedControllerGroup(m_right1, m_right2);
 
@@ -110,22 +119,39 @@ public class Robot extends TimedRobot {
     //default drive train code
     m_myRobot.arcadeDrive(controller.getY(Hand.kLeft), controller.getX(Hand.kRight));
 
-    //when our right bumper is pressed (scoring button) tension the rollers at the scoring end and run rollers
+    //when our right bumper is pressed (scoring button) tension the rollers at the scoring end and run
+    // both sets of rollers
     if(controller.getBumperPressed(Hand.kRight))
     {
       tensioner.set(Value.kReverse);
       m_intake.set(ControlMode.PercentOutput, -0.5);
-      // m_intake.set(-0.5);
+      m_output.set(ControlMode.PercentOutput, -0.5);
     }
     else if(controller.getBumperReleased(Hand.kRight))
     {
       tensioner.set(Value.kForward);
       m_intake.set(ControlMode.PercentOutput, 0);
-      // m_intake.set(0);
+      m_output.set(ControlMode.PercentOutput, 0);
     }
 
     //runs intake if B button is held down, stops when released
-    if(controller.getBButton()) m_intake.set(ControlMode.PercentOutput, -0.5);
-    else m_intake.set(ControlMode.PercentOutput, 0);
+    if(controller.getBButton()) 
+    {
+      m_intake.set(ControlMode.PercentOutput, -0.5);
+    }
+    else if(controller.getBButtonReleased())
+    {
+      m_intake.set(ControlMode.PercentOutput, 0);
+    }
+
+    // runs second roller if A button is held down, stops when released
+    if(controller.getAButton())
+    {
+      m_output.set(ControlMode.PercentOutput, -0.5);
+    }
+    else if (controller.getAButtonReleased())
+    {
+      m_output.set(ControlMode.PercentOutput, 0);
+    }
   }
 }
