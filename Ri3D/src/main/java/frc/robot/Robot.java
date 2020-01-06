@@ -10,6 +10,10 @@ package frc.robot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.ctre.phoenix.motorcontrol.ControlMode;
+
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PWMVictorSPX;
 import edu.wpi.first.wpilibj.SpeedController;
@@ -17,6 +21,7 @@ import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+
 // import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
@@ -34,7 +39,8 @@ public class Robot extends TimedRobot {
   private SpeedController m_left2 = new PWMVictorSPX(1);
   private SpeedController m_right1 = new PWMVictorSPX(2);
   private SpeedController m_right2 = new PWMVictorSPX(3);
-  private SpeedController m_intake = new PWMVictorSPX(4);
+  // private SpeedController m_intake = new PWMVictorSPX(4);
+  private VictorSPX m_intake = new VictorSPX(1);
   private DoubleSolenoid tensioner = new DoubleSolenoid(0, 1);
   private SpeedControllerGroup m_left = new SpeedControllerGroup(m_left1, m_left2);
   private SpeedControllerGroup m_right = new SpeedControllerGroup(m_right1, m_right2);
@@ -108,16 +114,18 @@ public class Robot extends TimedRobot {
     if(controller.getBumperPressed(Hand.kRight))
     {
       tensioner.set(Value.kReverse);
-      m_intake.set(-0.5);
+      m_intake.set(ControlMode.PercentOutput, -0.5);
+      // m_intake.set(-0.5);
     }
     else if(controller.getBumperReleased(Hand.kRight))
     {
       tensioner.set(Value.kForward);
-      m_intake.set(0);
+      m_intake.set(ControlMode.PercentOutput, 0);
+      // m_intake.set(0);
     }
 
     //runs intake if B button is held down, stops when released
-    if(controller.getBButton()) m_intake.set(-0.5);
-    else m_intake.set(0);
+    if(controller.getBButton()) m_intake.set(ControlMode.PercentOutput, -0.5);
+    else m_intake.set(ControlMode.PercentOutput, 0);
   }
 }
