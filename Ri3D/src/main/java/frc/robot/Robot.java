@@ -41,11 +41,9 @@ public class Robot extends TimedRobot {
   private SpeedController m_left2 = new PWMVictorSPX(1);
   private SpeedController m_right1 = new PWMVictorSPX(2);
   private SpeedController m_right2 = new PWMVictorSPX(3);
-  // private SpeedController m_intake = new PWMVictorSPX(4);
   
-  // Intake and Output Motor Controllers
+  // Intake Motor Controllers
   private VictorSPX m_intake = new VictorSPX(1);
-  private VictorSPX m_output = new VictorSPX(2);
 
   // Output Solenoid, raising the roller set
   private DoubleSolenoid tensioner = new DoubleSolenoid(0, 1);
@@ -121,37 +119,25 @@ public class Robot extends TimedRobot {
 
     //when our right bumper is pressed (scoring button) tension the rollers at the scoring end and run
     // both sets of rollers
-    if(controller.getBumperPressed(Hand.kRight))
+    if(controller.getBumper(Hand.kRight))
     {
       tensioner.set(Value.kReverse);
       m_intake.set(ControlMode.PercentOutput, -0.5);
-      m_output.set(ControlMode.PercentOutput, -0.5);
     }
-    else if(controller.getBumperReleased(Hand.kRight))
+    else
     {
       tensioner.set(Value.kForward);
       m_intake.set(ControlMode.PercentOutput, 0);
-      m_output.set(ControlMode.PercentOutput, 0);
     }
 
     //runs intake if B button is held down, stops when released
-    if(controller.getBButton()) 
+    if(controller.getBButton() && !controller.getBumper(Hand.kRight)) 
     {
       m_intake.set(ControlMode.PercentOutput, -0.5);
     }
-    else if(controller.getBButtonReleased())
+    else
     {
       m_intake.set(ControlMode.PercentOutput, 0);
-    }
-
-    // runs second roller if A button is held down, stops when released
-    if(controller.getAButton())
-    {
-      m_output.set(ControlMode.PercentOutput, -0.5);
-    }
-    else if (controller.getAButtonReleased())
-    {
-      m_output.set(ControlMode.PercentOutput, 0);
     }
   }
 }
