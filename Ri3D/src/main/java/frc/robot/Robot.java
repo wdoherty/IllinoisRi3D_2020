@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.PWMVictorSPX;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 
@@ -35,6 +36,7 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";	  
   private String m_autoSelected;	 
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
+  private final Timer m_timer = new Timer();
   
   // Drivetrain Motor Controllers - Victor SPs
   private SpeedController m_left1 = new PWMVictorSPX(0);
@@ -89,6 +91,9 @@ public class Robot extends TimedRobot {
     m_autoSelected = m_chooser.getSelected();	
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);	
     System.out.println("Auto selected: " + m_autoSelected);	
+
+    m_timer.reset();
+    m_timer.start();
   }	
 
   /**	
@@ -103,6 +108,25 @@ public class Robot extends TimedRobot {
       case kDefaultAuto:	
       default:	
         // Put default auto code here	
+
+        // Drive for 2 seconds
+        if (m_timer.get() < 2.0) {
+          m_myRobot.arcadeDrive(0.5, 0.0);
+        } else {
+          m_myRobot.arcadeDrive(0.0, 0.0);
+        }
+
+        //when done driving, tension the rollers to scoring position
+        if(m_timer.get() > 2.0 && tensioner.get() == Value.kForward)
+        {
+          tensioner.set(Value.kReverse);
+        }
+
+        if(m_timer.get() > 2.5)
+        {
+          m_intake.set(ControlMode.PercentOutput, -0.5);
+        }
+        else m_intake.set(ControlMode.PercentOutput, 0);
         break;	
     }	
   }
