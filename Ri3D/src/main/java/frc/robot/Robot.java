@@ -37,6 +37,7 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;	 
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
   private final Timer m_timer = new Timer();
+  private boolean climberDeployed;
   
   // Drivetrain Motor Controllers - Victor SPs
   private SpeedController m_left1 = new PWMVictorSPX(0);
@@ -51,10 +52,10 @@ public class Robot extends TimedRobot {
   private VictorSPX m_winch = new VictorSPX(2);
 
   // Output Solenoid, raising the roller set
-  private DoubleSolenoid tensioner = new DoubleSolenoid(2, 3);
+  private DoubleSolenoid tensioner = new DoubleSolenoid(0, 1);
 
   // Output Solenoid, extends climber system
-  private DoubleSolenoid climber = new DoubleSolenoid(0, 1);
+  private DoubleSolenoid climber = new DoubleSolenoid(2, 3);
 
   // Drivetrain Speed Controller Groups
   private SpeedControllerGroup m_left = new SpeedControllerGroup(m_left1, m_left2);
@@ -66,6 +67,12 @@ public class Robot extends TimedRobot {
     m_myRobot = new DifferentialDrive(m_left, m_right);
     controller = new XboxController(0);
     tensioner.set(Value.kOff);
+    climber.set(Value.kForward);
+  }
+
+  @Override
+  public void disabledInit() {
+    climber.set(Value.kForward);
   }
 
         /**	
@@ -93,7 +100,7 @@ public class Robot extends TimedRobot {
    */	
   @Override	
   public void autonomousInit() {	
-    tensioner.set(Value.kForward);
+    tensioner.set(Value.kReverse);
     climber.set(Value.kForward);
     m_autoSelected = m_chooser.getSelected();	
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);	
@@ -124,15 +131,15 @@ public class Robot extends TimedRobot {
         }
 
         // when done driving, tension the rollers to scoring position
-        if(m_timer.get() > 2.0 && tensioner.get() == Value.kForward)
+        if(m_timer.get() > 2.0 && tensioner.get() != Value.kForward)
         {
-          tensioner.set(Value.kReverse);
+          tensioner.set(Value.kForward);
         }
 
         // give us a half second for the rollers to settle, then start scoring
         if(m_timer.get() > 2.5)
         {
-          m_intake.set(ControlMode.PercentOutput, -0.5);
+          m_intake.set(ControlMode.PercentOutput, 0.9);
         }
         else m_intake.set(ControlMode.PercentOutput, 0);
         break;	
@@ -143,6 +150,7 @@ public class Robot extends TimedRobot {
   public void teleopInit() {	
     // tensioner.set(Value.kForward);
     climber.set(Value.kForward);
+    climberDeployed = false;
   }	
 
   @Override
@@ -154,21 +162,21 @@ public class Robot extends TimedRobot {
     // both sets of rollers
     if(controller.getBumper(Hand.kRight))
     {
-      tensioner.set(Value.kReverse);
-      m_intake.set(ControlMode.PercentOutput, -0.5);
+      tensioner.set(Value.kForward);
+      m_intake.set(ControlMode.PercentOutput, 0.9);
     }
     else
     {
-      tensioner.set(Value.kForward);
+      tensioner.set(Value.kReverse);
       m_intake.set(ControlMode.PercentOutput, 0);
     }
 
     //runs intake if B button is held down, stops when released
-    if(controller.getBButton() && !controller.getBumper(Hand.kRight)) 
+    if(controller.getBButton()) 
     {
-      m_intake.set(ControlMode.PercentOutput, -0.5);
+      m_intake.set(ControlMode.PercentOutput, 0.9);
     }
-    else
+    else if(!controller.getBumper(Hand.kRight))
     {
       m_intake.set(ControlMode.PercentOutput, 0);
     }
@@ -176,11 +184,13 @@ public class Robot extends TimedRobot {
     if(controller.getBumperPressed(Hand.kLeft))
     {
       climber.set(Value.kReverse);
+      climberDeployed = true;
     }
 
-    if(controller.getXButton() && climber.get() == Value.kReverse)
+    if(controller.getXButton() && climberDeployed == true)
     {
-      m_winch.set(ControlMode.PercentOutput, -0.25);
+      m_winch.set(ControlMode.PercentOutput, 0.7);
+      climber.set(Value.kForward);
     }
     else 
     {
