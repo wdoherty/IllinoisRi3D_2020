@@ -47,8 +47,14 @@ public class Robot extends TimedRobot {
   // Intake Motor Controllers
   private VictorSPX m_intake = new VictorSPX(1);
 
+  // Climber Winch Motor Controller
+  private VictorSPX m_winch = new VictorSPX(2);
+
   // Output Solenoid, raising the roller set
-  private DoubleSolenoid tensioner = new DoubleSolenoid(0, 1);
+  private DoubleSolenoid tensioner = new DoubleSolenoid(2, 3);
+
+  // Output Solenoid, extends climber system
+  private DoubleSolenoid climber = new DoubleSolenoid(0, 1);
 
   // Drivetrain Speed Controller Groups
   private SpeedControllerGroup m_left = new SpeedControllerGroup(m_left1, m_left2);
@@ -88,6 +94,7 @@ public class Robot extends TimedRobot {
   @Override	
   public void autonomousInit() {	
     tensioner.set(Value.kForward);
+    climber.set(Value.kForward);
     m_autoSelected = m_chooser.getSelected();	
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);	
     System.out.println("Auto selected: " + m_autoSelected);	
@@ -116,12 +123,13 @@ public class Robot extends TimedRobot {
           m_myRobot.arcadeDrive(0.0, 0.0);
         }
 
-        //when done driving, tension the rollers to scoring position
+        // when done driving, tension the rollers to scoring position
         if(m_timer.get() > 2.0 && tensioner.get() == Value.kForward)
         {
           tensioner.set(Value.kReverse);
         }
 
+        // give us a half second for the rollers to settle, then start scoring
         if(m_timer.get() > 2.5)
         {
           m_intake.set(ControlMode.PercentOutput, -0.5);
@@ -133,7 +141,8 @@ public class Robot extends TimedRobot {
 
   @Override	
   public void teleopInit() {	
-    tensioner.set(Value.kForward);
+    // tensioner.set(Value.kForward);
+    climber.set(Value.kForward);
   }	
 
   @Override
@@ -163,5 +172,20 @@ public class Robot extends TimedRobot {
     {
       m_intake.set(ControlMode.PercentOutput, 0);
     }
+
+    if(controller.getBumperPressed(Hand.kLeft))
+    {
+      climber.set(Value.kReverse);
+    }
+
+    if(controller.getXButton() && climber.get() == Value.kReverse)
+    {
+      m_winch.set(ControlMode.PercentOutput, -0.25);
+    }
+    else 
+    {
+      m_winch.set(ControlMode.PercentOutput, 0);
+    }
+
   }
 }
