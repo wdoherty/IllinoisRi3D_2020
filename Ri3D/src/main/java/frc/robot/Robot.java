@@ -158,8 +158,7 @@ public class Robot extends TimedRobot {
     //default drive train code
     m_myRobot.arcadeDrive(controller.getY(Hand.kLeft), controller.getX(Hand.kRight));
 
-    //when our right bumper is pressed (scoring button) tension the rollers at the scoring end and run
-    // both sets of rollers
+    //when our right bumper is pressed (scoring button) run rollers
     if(controller.getBumper(Hand.kRight))
     {
       tensioner.set(Value.kForward);
@@ -167,21 +166,25 @@ public class Robot extends TimedRobot {
     }
     else
     {
-      tensioner.set(Value.kReverse);
+      // tensioner.set(Value.kReverse);
       m_intake.set(ControlMode.PercentOutput, 0);
     }
 
-    //runs intake if B button is held down, stops when released
-    if(controller.getBButton()) 
+    //runs intake and raises rollers if B button is held down, stops when released
+    // if(controller.getBButton()) 
+    if(controller.getBumper(Hand.kLeft))
     {
       m_intake.set(ControlMode.PercentOutput, 0.9);
+      tensioner.set(Value.kReverse);
     }
     else if(!controller.getBumper(Hand.kRight))
     {
+      tensioner.set(Value.kForward);
       m_intake.set(ControlMode.PercentOutput, 0);
     }
 
-    if(controller.getBumperPressed(Hand.kLeft))
+    // if(controller.getBumperPressed(Hand.kLeft))
+    if(controller.getBButtonPressed()) 
     {
       climber.set(Value.kReverse);
       climberDeployed = true;
@@ -189,7 +192,7 @@ public class Robot extends TimedRobot {
 
     if(controller.getXButton() && climberDeployed == true)
     {
-      m_winch.set(ControlMode.PercentOutput, 0.7);
+      m_winch.set(ControlMode.PercentOutput, -0.85);
       climber.set(Value.kForward);
     }
     else 
