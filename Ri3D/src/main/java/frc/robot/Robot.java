@@ -21,7 +21,7 @@ import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+// import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 
 // import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -35,9 +35,10 @@ public class Robot extends TimedRobot {
   private static final String kDefaultAuto = "Default";	  
   private static final String kCustomAuto = "My Auto";	  
   private String m_autoSelected;	 
-  private final SendableChooser<String> m_chooser = new SendableChooser<>();
+  // private final SendableChooser<String> m_chooser = new SendableChooser<>();
   private final Timer m_timer = new Timer();
   private boolean climberDeployed;
+  private boolean intakeTimerSet;
   
   // Drivetrain Motor Controllers - Victor SPs
   private SpeedController m_left1 = new PWMVictorSPX(0);
@@ -100,11 +101,12 @@ public class Robot extends TimedRobot {
    */	
   @Override	
   public void autonomousInit() {	
-    tensioner.set(Value.kReverse);
+    tensioner.set(Value.kForward);
     climber.set(Value.kForward);
-    m_autoSelected = m_chooser.getSelected();	
+    // m_autoSelected = m_chooser.getSelected();	
+    m_autoSelected = kDefaultAuto;
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);	
-    System.out.println("Auto selected: " + m_autoSelected);	
+    // System.out.println("Auto selected: " + m_autoSelected);	
 
     m_timer.reset();
     m_timer.start();
@@ -124,25 +126,25 @@ public class Robot extends TimedRobot {
         // Put default auto code here	
 
         // Drive for 2 seconds
-        if (m_timer.get() < 2.0) {
-          m_myRobot.arcadeDrive(0.5, 0.0);
+        if (m_timer.get() < 1.5) {
+          m_myRobot.arcadeDrive(0.75, 0.0);
         } else {
           m_myRobot.arcadeDrive(0.0, 0.0);
         }
 
         // when done driving, tension the rollers to scoring position
-        if(m_timer.get() > 2.0 && tensioner.get() != Value.kForward)
-        {
-          tensioner.set(Value.kForward);
-        }
+        // if(m_timer.get() > 1.5 && tensioner.get() != Value.kForward)
+        // {
+        //   tensioner.set(Value.kForward);
+        // }
 
         // give us a half second for the rollers to settle, then start scoring
-        if(m_timer.get() > 2.5)
+        if(m_timer.get() > 2.0 && m_timer.get() < 4.0)
         {
-          m_intake.set(ControlMode.PercentOutput, 0.9);
+          m_intake.set(ControlMode.PercentOutput, -0.9);
         }
         else m_intake.set(ControlMode.PercentOutput, 0);
-        break;	
+        // break;	
     }	
   }
 
@@ -151,6 +153,7 @@ public class Robot extends TimedRobot {
     // tensioner.set(Value.kForward);
     climber.set(Value.kForward);
     climberDeployed = false;
+    intakeTimerSet = false;
   }	
 
   @Override
@@ -162,24 +165,38 @@ public class Robot extends TimedRobot {
     if(controller.getBumper(Hand.kRight))
     {
       tensioner.set(Value.kForward);
-      m_intake.set(ControlMode.PercentOutput, 0.9);
+      m_intake.set(ControlMode.PercentOutput, -0.9);
     }
     else
     {
-      // tensioner.set(Value.kReverse);
       m_intake.set(ControlMode.PercentOutput, 0);
     }
 
-    //runs intake and raises rollers if B button is held down, stops when released
-    // if(controller.getBButton()) 
+    //runs intake and raises rollers if Left bumper is held down, stops when released
     if(controller.getBumper(Hand.kLeft))
     {
-      m_intake.set(ControlMode.PercentOutput, 0.9);
+      if(!intakeTimerSet)
+      {
+        m_timer.reset();
+        m_timer.start();
+        intakeTimerSet = true;
+      }
+      if(m_timer.get() > 0.5) m_intake.set(ControlMode.PercentOutput, -0.9);
       tensioner.set(Value.kReverse);
     }
     else if(!controller.getBumper(Hand.kRight))
     {
       tensioner.set(Value.kForward);
+      m_intake.set(ControlMode.PercentOutput, 0);
+      intakeTimerSet = false;
+    }
+
+    if(controller.getYButton() && !controller.getBumper(Hand.kRight) && !controller.getBumper(Hand.kLeft))
+    {
+      m_intake.set(ControlMode.PercentOutput, 0.9);
+    }
+    else if(!controller.getBumper(Hand.kRight) && !controller.getBumper(Hand.kLeft))
+    {
       m_intake.set(ControlMode.PercentOutput, 0);
     }
 
