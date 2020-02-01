@@ -172,7 +172,8 @@ public class Robot extends TimedRobot {
       m_intake.set(ControlMode.PercentOutput, 0);
     }
 
-    //runs intake and raises rollers if Left bumper is held down, stops when released
+    // runs intake and raises rollers if Left bumper is held down, stops when released
+    // Added functionality: use a timer to delay rollers until the pistons are fully deployed
     if(controller.getBumper(Hand.kLeft))
     {
       if(!intakeTimerSet)
@@ -191,6 +192,7 @@ public class Robot extends TimedRobot {
       intakeTimerSet = false;
     }
 
+    // Roller reversing
     if(controller.getYButton() && !controller.getBumper(Hand.kRight) && !controller.getBumper(Hand.kLeft))
     {
       m_intake.set(ControlMode.PercentOutput, 0.9);
@@ -198,6 +200,15 @@ public class Robot extends TimedRobot {
     else if(!controller.getBumper(Hand.kRight) && !controller.getBumper(Hand.kLeft))
     {
       m_intake.set(ControlMode.PercentOutput, 0);
+    }
+
+    if((controller.getTriggerAxis(Hand.kLeft) != 0) && !controller.getYButton() && !controller.getBumper(Hand.kRight) && !controller.getBumper(Hand.kLeft))
+    {
+      tensioner.set(Value.kReverse);
+    }
+    else if(!controller.getBumper(Hand.kLeft))
+    {
+      tensioner.set(Value.kForward);
     }
 
     // if(controller.getBumperPressed(Hand.kLeft))
